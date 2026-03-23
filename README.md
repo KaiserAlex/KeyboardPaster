@@ -1,6 +1,6 @@
 # KeyboardPaster
 
-A lightweight PowerShell tool that types clipboard content character by character using simulated keystrokes — instead of pasting.
+A lightweight PowerShell tool that runs in the background and types clipboard content character by character using simulated keystrokes — triggered by **Ctrl+Shift+V**.
 
 ## Why?
 
@@ -9,27 +9,38 @@ Some applications block `Ctrl+V` paste operations, detect clipboard paste events
 ## Usage
 
 ```powershell
-# Copy text to clipboard, then run:
+# Start the background listener:
 .\KeyboardPaster.ps1
 
-# Custom delay between keystrokes (in ms) and startup countdown (in seconds):
-.\KeyboardPaster.ps1 -DelayMs 50 -StartDelaySec 5
+# With custom delay between keystrokes:
+.\KeyboardPaster.ps1 -DelayMs 50
 ```
+
+Once running:
+
+1. Copy text with `Ctrl+C` as usual
+2. Click into the target application
+3. Press **Ctrl+Shift+V** — the text is typed out character by character
+4. A tray notification confirms completion
 
 ### Parameters
 
-| Parameter        | Default | Range     | Description                                      |
-|------------------|---------|-----------|--------------------------------------------------|
-| `-DelayMs`       | `30`    | `0–1000`  | Delay in milliseconds between each keystroke      |
-| `-StartDelaySec` | `3`     | `1–30`    | Countdown before typing starts (switch to target) |
+| Parameter  | Default | Range    | Description                                 |
+|------------|---------|----------|---------------------------------------------|
+| `-DelayMs` | `30`    | `0–1000` | Delay in milliseconds between each keystroke |
+
+### Stopping
+
+- **Right-click** the system tray icon → *Exit KeyboardPaster*
+- Or press **Ctrl+C** in the terminal
 
 ## How It Works
 
-1. Reads text from the Windows clipboard
-2. Shows a preview and character count
-3. Counts down to give you time to focus the target window
-4. Sends each character individually via `System.Windows.Forms.SendKeys`
-5. Handles special characters, newlines, and tabs
+1. Registers a global **Ctrl+Shift+V** hotkey via the Win32 `RegisterHotKey` API
+2. Runs a hidden window with a system tray icon to listen for the hotkey
+3. On hotkey press, reads the clipboard and sends each character via `SendKeys`
+4. Handles special characters (`+`, `^`, `%`, `~`, `{`, `}`, etc.), newlines, and tabs
+5. Provides tray balloon notifications for status feedback
 
 ## Requirements
 
