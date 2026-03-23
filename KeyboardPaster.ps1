@@ -103,7 +103,7 @@ public class HotkeyDialog : Form
 
     public HotkeyDialog(string currentDisplay)
     {
-        this.Text = "Hotkey \u00e4ndern";
+        this.Text = "Change Hotkey";
         this.ClientSize = new Size(310, 145);
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.StartPosition = FormStartPosition.CenterScreen;
@@ -113,14 +113,14 @@ public class HotkeyDialog : Form
 
         var lblCurrent = new Label
         {
-            Text = "Aktuell:  " + currentDisplay,
+            Text = "Current:  " + currentDisplay,
             Location = new Point(15, 15),
             AutoSize = true,
             Font = new Font("Segoe UI", 9f)
         };
         var lblInstr = new Label
         {
-            Text = "Neue Kombination dr\u00fccken:",
+            Text = "Press new key combination:",
             Location = new Point(15, 40),
             AutoSize = true,
             Font = new Font("Segoe UI", 9f)
@@ -145,7 +145,7 @@ public class HotkeyDialog : Form
         };
         var btnCancel = new Button
         {
-            Text = "Abbrechen",
+            Text = "Cancel",
             Location = new Point(218, 105),
             Size = new Size(80, 28),
             DialogResult = DialogResult.Cancel
@@ -300,7 +300,7 @@ $form = New-Object KeyboardPasterForm
 $hotkeyMod = [uint32]$script:Settings.HotkeyMod
 $hotkeyVk  = [uint32]$script:Settings.HotkeyVk
 if (-not $form.RegisterHotkeyCombo($hotkeyMod, $hotkeyVk)) {
-    Write-Host "ERROR: Hotkey $($script:Settings.HotkeyDisplay) konnte nicht registriert werden (bereits belegt?)." -ForegroundColor Red
+    Write-Host "ERROR: Could not register hotkey $($script:Settings.HotkeyDisplay). It may already be in use." -ForegroundColor Red
     exit 1
 }
 
@@ -323,7 +323,7 @@ $autoItem.add_Click({
 })
 
 # Menu: Change hotkey
-$hotkeyItem = New-Object System.Windows.Forms.ToolStripMenuItem("Hotkey `u{00E4}ndern...")
+$hotkeyItem = New-Object System.Windows.Forms.ToolStripMenuItem("Change Hotkey...")
 $hotkeyItem.add_Click({
     # Unregister current hotkey so the capture dialog can use all keys
     $form.UnregisterHotkeyCombo()
@@ -339,12 +339,12 @@ $hotkeyItem.add_Click({
             Save-Settings $script:Settings
             $trayIcon.Text = "KeyboardPaster`n$($dlg.ResultDisplay)"
             $trayIcon.ShowBalloonTip(2000, "KeyboardPaster",
-                "Hotkey ge`u{00E4}ndert: $($dlg.ResultDisplay)",
+                "Hotkey changed: $($dlg.ResultDisplay)",
                 [System.Windows.Forms.ToolTipIcon]::Info)
         } else {
             $form.RegisterHotkeyCombo([uint32]$script:Settings.HotkeyMod, [uint32]$script:Settings.HotkeyVk)
             $trayIcon.ShowBalloonTip(2000, "KeyboardPaster",
-                "'$($dlg.ResultDisplay)' ist bereits belegt.",
+                "'$($dlg.ResultDisplay)' is already in use.",
                 [System.Windows.Forms.ToolTipIcon]::Error)
         }
     } else {
@@ -356,7 +356,7 @@ $hotkeyItem.add_Click({
 
 # Menu: Separator + Exit
 $separator = New-Object System.Windows.Forms.ToolStripSeparator
-$exitItem  = New-Object System.Windows.Forms.ToolStripMenuItem("Beenden")
+$exitItem  = New-Object System.Windows.Forms.ToolStripMenuItem("Exit")
 $exitItem.add_Click({
     $trayIcon.Visible = $false
     [System.Windows.Forms.Application]::Exit()
@@ -374,7 +374,7 @@ $form.add_HotkeyPressed({
         $clipText = Get-Clipboard -Raw
         if ([string]::IsNullOrEmpty($clipText)) {
             $trayIcon.ShowBalloonTip(2000, "KeyboardPaster",
-                "Zwischenablage ist leer.",
+                "Clipboard is empty.",
                 [System.Windows.Forms.ToolTipIcon]::Warning)
             return
         }
@@ -390,7 +390,7 @@ $form.add_HotkeyPressed({
         }
 
         $trayIcon.ShowBalloonTip(1500, "KeyboardPaster",
-            "$($clipText.Length) Zeichen getippt.",
+            "Typed $($clipText.Length) characters.",
             [System.Windows.Forms.ToolTipIcon]::Info)
     }
     finally {
@@ -400,15 +400,15 @@ $form.add_HotkeyPressed({
 
 # ── Start ───────────────────────────────────────────────────────────────────
 $startMsg = if ($script:FirstRun) {
-    "Erster Start! Autostart wurde aktiviert.`nDr`u{00FC}cke $($script:Settings.HotkeyDisplay) zum Tippen."
+    "First launch! Autostart enabled.`nPress $($script:Settings.HotkeyDisplay) to type clipboard."
 } else {
-    "Bereit! Dr`u{00FC}cke $($script:Settings.HotkeyDisplay) zum Tippen."
+    "Ready! Press $($script:Settings.HotkeyDisplay) to type clipboard."
 }
 $trayIcon.ShowBalloonTip(3000, "KeyboardPaster", $startMsg, [System.Windows.Forms.ToolTipIcon]::Info)
 
-Write-Host "KeyboardPaster läuft." -ForegroundColor Green
+Write-Host "KeyboardPaster is running." -ForegroundColor Green
 Write-Host "Hotkey: $($script:Settings.HotkeyDisplay)" -ForegroundColor Cyan
-Write-Host "Rechtsklick auf das Tray-Icon zum Konfigurieren." -ForegroundColor DarkGray
+Write-Host "Right-click the tray icon to configure or exit." -ForegroundColor DarkGray
 
 try {
     [System.Windows.Forms.Application]::Run($form)
@@ -417,5 +417,5 @@ finally {
     $trayIcon.Visible = $false
     $trayIcon.Dispose()
     $form.Dispose()
-    Write-Host "`nKeyboardPaster beendet." -ForegroundColor Yellow
+    Write-Host "`nKeyboardPaster stopped." -ForegroundColor Yellow
 }

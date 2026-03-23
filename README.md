@@ -34,12 +34,12 @@ Once running:
 | Entry              | Description                                                      |
 |--------------------|------------------------------------------------------------------|
 | **Autostart**      | Toggle Windows autostart on/off (enabled by default on first run) |
-| **Hotkey ändern…** | Opens a dialog to capture a new keyboard shortcut                 |
-| **Beenden**        | Stops KeyboardPaster                                              |
+| **Change Hotkey…** | Opens a dialog to capture a new keyboard shortcut                 |
+| **Exit**           | Stops KeyboardPaster                                              |
 
 ### Stopping
 
-- **Right-click** the system tray icon → *Beenden*
+- **Right-click** the system tray icon → *Exit*
 - Or press **Ctrl+C** in the terminal
 
 ## How It Works
