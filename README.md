@@ -44,7 +44,7 @@ Once running:
 ## How It Works
 
 1. On first launch, adds itself to Windows autostart (`HKCU\...\Run` registry)
-2. Hides the console window automatically (runs completely in the background)
+2. Automatically relaunches as a hidden background process (no console window)
 3. Registers a global hotkey via the Win32 `RegisterHotKey` API
 3. Runs a hidden window with a custom system tray icon to listen for the hotkey
 4. On hotkey press, reads the clipboard and sends each character via `SendKeys`

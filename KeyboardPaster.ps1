@@ -22,17 +22,17 @@
 
 param(
     [ValidateRange(0, 1000)]
-    [int]$DelayMs = 30
+    [int]$DelayMs = 30,
+
+    [switch]$Background
 )
 
-# ── Hide console window ────────────────────────────────────────────────────
-Add-Type -MemberDefinition @"
-    [DllImport("kernel32.dll")] public static extern IntPtr GetConsoleWindow();
-    [DllImport("user32.dll")]   public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-"@ -Name ConsoleUtil -Namespace Win32
-$consoleHwnd = [Win32.ConsoleUtil]::GetConsoleWindow()
-if ($consoleHwnd -ne [IntPtr]::Zero) {
-    [Win32.ConsoleUtil]::ShowWindow($consoleHwnd, 0) | Out-Null  # SW_HIDE
+# ── Relaunch as hidden background process if needed ─────────────────────────
+if (-not $Background) {
+    $args = @('-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-File', $PSCommandPath, '-Background')
+    if ($PSBoundParameters.ContainsKey('DelayMs')) { $args += '-DelayMs'; $args += $DelayMs }
+    Start-Process powershell.exe -ArgumentList $args -WindowStyle Hidden
+    exit
 }
 
 # ── Assemblies ──────────────────────────────────────────────────────────────
@@ -238,7 +238,7 @@ $script:RegName = "KeyboardPaster"
 function Set-Autostart([bool]$Enabled) {
     if ($Enabled) {
         $scriptPath = $PSCommandPath
-        $value = "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$scriptPath`""
+        $value = "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$scriptPath`" -Background"
         Set-ItemProperty -Path $script:RegPath -Name $script:RegName -Value $value
     } else {
         Remove-ItemProperty -Path $script:RegPath -Name $script:RegName -ErrorAction SilentlyContinue
@@ -407,10 +407,6 @@ $startMsg = if ($script:FirstRun) {
 }
 $trayIcon.ShowBalloonTip(3000, "KeyboardPaster", $startMsg, [System.Windows.Forms.ToolTipIcon]::Info)
 
-Write-Host "KeyboardPaster is running." -ForegroundColor Green
-Write-Host "Hotkey: $($script:Settings.HotkeyDisplay)" -ForegroundColor Cyan
-Write-Host "Right-click the tray icon to configure or exit." -ForegroundColor DarkGray
-
 try {
     [System.Windows.Forms.Application]::Run($form)
 }
@@ -418,5 +414,4 @@ finally {
     $trayIcon.Visible = $false
     $trayIcon.Dispose()
     $form.Dispose()
-    Write-Host "`nKeyboardPaster stopped." -ForegroundColor Yellow
 }
