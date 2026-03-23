@@ -29,9 +29,9 @@ param(
 
 # ── Relaunch as hidden background process if needed ─────────────────────────
 if (-not $Background) {
-    $args = @('-WindowStyle', 'Hidden', '-ExecutionPolicy', 'Bypass', '-File', $PSCommandPath, '-Background')
-    if ($PSBoundParameters.ContainsKey('DelayMs')) { $args += '-DelayMs'; $args += $DelayMs }
-    Start-Process powershell.exe -ArgumentList $args -WindowStyle Hidden
+    $launchArgs = "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSCommandPath`" -Background"
+    if ($PSBoundParameters.ContainsKey('DelayMs')) { $launchArgs += " -DelayMs $DelayMs" }
+    Start-Process powershell.exe -ArgumentList $launchArgs -WindowStyle Hidden
     exit
 }
 
