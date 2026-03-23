@@ -382,12 +382,7 @@ $form.add_HotkeyPressed({
 
     try {
         $clipText = Get-Clipboard -Raw
-        if ([string]::IsNullOrEmpty($clipText)) {
-            $trayIcon.ShowBalloonTip(2000, "KeyboardPaster",
-                "Clipboard is empty.",
-                [System.Windows.Forms.ToolTipIcon]::Warning)
-            return
-        }
+        if ([string]::IsNullOrEmpty($clipText)) { return }
 
         # Wait for modifier keys to be released
         [System.Threading.Thread]::Sleep(300)
@@ -398,10 +393,6 @@ $form.add_HotkeyPressed({
                 [System.Threading.Thread]::Sleep($script:Settings.DelayMs)
             }
         }
-
-        $trayIcon.ShowBalloonTip(1500, "KeyboardPaster",
-            "Typed $($clipText.Length) characters.",
-            [System.Windows.Forms.ToolTipIcon]::Info)
     }
     finally {
         $script:IsTyping = $false
