@@ -1,6 +1,6 @@
 # KeyboardPaster
 
-A lightweight PowerShell tool that runs in the background and types clipboard content character by character using simulated keystrokes — triggered by **Ctrl+Shift+V**.
+A lightweight PowerShell tool that runs in the background and types clipboard content character by character using simulated keystrokes — triggered by a configurable hotkey (default: **Ctrl+Shift+V**).
 
 ## Why?
 
@@ -20,7 +20,7 @@ Once running:
 
 1. Copy text with `Ctrl+C` as usual
 2. Click into the target application
-3. Press **Ctrl+Shift+V** — the text is typed out character by character
+3. Press **Ctrl+Shift+V** (or your custom hotkey) — the text is typed out character by character
 4. A tray notification confirms completion
 
 ### Parameters
@@ -29,18 +29,27 @@ Once running:
 |------------|---------|----------|---------------------------------------------|
 | `-DelayMs` | `30`    | `0–1000` | Delay in milliseconds between each keystroke |
 
+### System Tray Menu (right-click)
+
+| Entry              | Description                                                      |
+|--------------------|------------------------------------------------------------------|
+| **Autostart**      | Toggle Windows autostart on/off (enabled by default on first run) |
+| **Hotkey ändern…** | Opens a dialog to capture a new keyboard shortcut                 |
+| **Beenden**        | Stops KeyboardPaster                                              |
+
 ### Stopping
 
-- **Right-click** the system tray icon → *Exit KeyboardPaster*
+- **Right-click** the system tray icon → *Beenden*
 - Or press **Ctrl+C** in the terminal
 
 ## How It Works
 
-1. Registers a global **Ctrl+Shift+V** hotkey via the Win32 `RegisterHotKey` API
-2. Runs a hidden window with a system tray icon to listen for the hotkey
-3. On hotkey press, reads the clipboard and sends each character via `SendKeys`
-4. Handles special characters (`+`, `^`, `%`, `~`, `{`, `}`, etc.), newlines, and tabs
-5. Provides tray balloon notifications for status feedback
+1. On first launch, adds itself to Windows autostart (`HKCU\...\Run` registry)
+2. Registers a global hotkey via the Win32 `RegisterHotKey` API
+3. Runs a hidden window with a custom system tray icon to listen for the hotkey
+4. On hotkey press, reads the clipboard and sends each character via `SendKeys`
+5. Handles special characters (`+`, `^`, `%`, `~`, `{`, `}`, etc.), newlines, and tabs
+6. Settings (hotkey, autostart) are persisted in `%APPDATA%\KeyboardPaster\settings.json`
 
 ## Requirements
 
