@@ -61,8 +61,22 @@ public class KeyboardPasterForm : Form
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
+    [DllImport("user32.dll")]
+    public static extern short GetAsyncKeyState(int vKey);
+
     private const int WM_HOTKEY = 0x0312;
     private const int HOTKEY_ID = 9001;
+
+    // Returns true if any modifier key (Ctrl, Shift, Alt) is currently held down
+    public static bool AreModifiersHeld()
+    {
+        const int VK_SHIFT   = 0x10;
+        const int VK_CONTROL = 0x11;
+        const int VK_MENU    = 0x12; // Alt
+        return (GetAsyncKeyState(VK_SHIFT)   & 0x8000) != 0 ||
+               (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0 ||
+               (GetAsyncKeyState(VK_MENU)    & 0x8000) != 0;
+    }
 
     public event EventHandler HotkeyPressed;
 
@@ -384,8 +398,13 @@ $form.add_HotkeyPressed({
         $clipText = Get-Clipboard -Raw
         if ([string]::IsNullOrEmpty($clipText)) { return }
 
-        # Wait for modifier keys to be released
-        [System.Threading.Thread]::Sleep(300)
+        # Wait until modifier keys are actually released
+        $timeout = 50
+        while ([KeyboardPasterForm]::AreModifiersHeld() -and $timeout -gt 0) {
+            [System.Threading.Thread]::Sleep(20)
+            $timeout--
+        }
+        [System.Threading.Thread]::Sleep(50)
 
         foreach ($char in $clipText.ToCharArray()) {
             Send-Character $char
