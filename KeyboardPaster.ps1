@@ -217,11 +217,12 @@ $script:SettingsFile = Join-Path $script:SettingsDir "settings.json"
 
 function Get-DefaultSettings {
     @{
-        AutoStart     = $true
-        HotkeyMod     = 0x4006   # MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT
-        HotkeyVk      = 0x56     # VK_V
-        HotkeyDisplay = "Ctrl+Shift+V"
-        DelayMs       = $DelayMs
+        AutoStart      = $true
+        HotkeyMod      = 0x4006   # MOD_CONTROL | MOD_SHIFT | MOD_NOREPEAT
+        HotkeyVk       = 0x56     # VK_V
+        HotkeyDisplay  = "Ctrl+Shift+V"
+        DelayMs        = $DelayMs
+        EnterAfterPaste = $false
     }
 }
 
@@ -346,6 +347,65 @@ $autoItem.add_Click({
     Save-Settings $script:Settings
 })
 
+# Menu: Enter after Paste toggle
+$enterItem = New-Object System.Windows.Forms.ToolStripMenuItem("Enter after Paste")
+$enterItem.Checked = [bool]$script:Settings.EnterAfterPaste
+$enterItem.add_Click({
+    $script:Settings.EnterAfterPaste = -not $script:Settings.EnterAfterPaste
+    $enterItem.Checked = $script:Settings.EnterAfterPaste
+    Save-Settings $script:Settings
+})
+
+# Menu: Delay configuration
+$delayItem = New-Object System.Windows.Forms.ToolStripMenuItem("Delay: $($script:Settings.DelayMs)ms")
+$delayItem.add_Click({
+    $inputForm = New-Object System.Windows.Forms.Form
+    $inputForm.Text = "Keystroke Delay"
+    $inputForm.ClientSize = New-Object System.Drawing.Size(280, 120)
+    $inputForm.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
+    $inputForm.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
+    $inputForm.MaximizeBox = $false
+    $inputForm.MinimizeBox = $false
+    $inputForm.TopMost = $true
+
+    $lbl = New-Object System.Windows.Forms.Label
+    $lbl.Text = "Delay between keystrokes (0–1000 ms):"
+    $lbl.Location = New-Object System.Drawing.Point(15, 15)
+    $lbl.AutoSize = $true
+    $lbl.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+
+    $nud = New-Object System.Windows.Forms.NumericUpDown
+    $nud.Location = New-Object System.Drawing.Point(15, 42)
+    $nud.Size = New-Object System.Drawing.Size(248, 28)
+    $nud.Minimum = 0
+    $nud.Maximum = 1000
+    $nud.Value = $script:Settings.DelayMs
+    $nud.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+
+    $btnOK = New-Object System.Windows.Forms.Button
+    $btnOK.Text = "OK"
+    $btnOK.Location = New-Object System.Drawing.Point(113, 82)
+    $btnOK.Size = New-Object System.Drawing.Size(75, 28)
+    $btnOK.DialogResult = [System.Windows.Forms.DialogResult]::OK
+
+    $btnCancel = New-Object System.Windows.Forms.Button
+    $btnCancel.Text = "Cancel"
+    $btnCancel.Location = New-Object System.Drawing.Point(192, 82)
+    $btnCancel.Size = New-Object System.Drawing.Size(75, 28)
+    $btnCancel.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+
+    $inputForm.AcceptButton = $btnOK
+    $inputForm.CancelButton = $btnCancel
+    $inputForm.Controls.AddRange(@($lbl, $nud, $btnOK, $btnCancel))
+
+    if ($inputForm.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        $script:Settings.DelayMs = [int]$nud.Value
+        Save-Settings $script:Settings
+        $delayItem.Text = "Delay: $($script:Settings.DelayMs)ms"
+    }
+    $inputForm.Dispose()
+})
+
 # Menu: Change hotkey
 $hotkeyItem = New-Object System.Windows.Forms.ToolStripMenuItem("Change Hotkey...")
 $hotkeyItem.add_Click({
@@ -386,7 +446,7 @@ $exitItem.add_Click({
     [System.Windows.Forms.Application]::Exit()
 })
 
-$contextMenu.Items.AddRange(@($autoItem, $hotkeyItem, $separator, $exitItem))
+$contextMenu.Items.AddRange(@($autoItem, $enterItem, $delayItem, $hotkeyItem, $separator, $exitItem))
 $trayIcon.ContextMenuStrip = $contextMenu
 
 # ── Hotkey handler ──────────────────────────────────────────────────────────
@@ -411,6 +471,10 @@ $form.add_HotkeyPressed({
             if ($script:Settings.DelayMs -gt 0) {
                 [System.Threading.Thread]::Sleep($script:Settings.DelayMs)
             }
+        }
+
+        if ($script:Settings.EnterAfterPaste) {
+            [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")
         }
     }
     finally {
