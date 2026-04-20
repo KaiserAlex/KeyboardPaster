@@ -27,11 +27,25 @@ param(
     [switch]$Background
 )
 
+function Get-HostExecutablePath {
+    $procPath = (Get-Process -Id $PID -ErrorAction SilentlyContinue).Path
+    if (-not [string]::IsNullOrWhiteSpace($procPath) -and (Test-Path $procPath)) {
+        return $procPath
+    }
+
+    if ($PSVersionTable.PSEdition -eq 'Core') {
+        return 'pwsh.exe'
+    }
+    return 'powershell.exe'
+}
+
+$script:HostExe = Get-HostExecutablePath
+
 # ── Relaunch as hidden background process if needed ─────────────────────────
 if (-not $Background) {
     $launchArgs = "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSCommandPath`" -Background"
     if ($PSBoundParameters.ContainsKey('DelayMs')) { $launchArgs += " -DelayMs $DelayMs" }
-    Start-Process powershell.exe -ArgumentList $launchArgs -WindowStyle Hidden
+    Start-Process -FilePath $script:HostExe -ArgumentList $launchArgs -WindowStyle Hidden
     exit
 }
 
@@ -253,7 +267,7 @@ $script:RegName = "KeyboardPaster"
 function Set-Autostart([bool]$Enabled) {
     if ($Enabled) {
         $scriptPath = $PSCommandPath
-        $value = "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$scriptPath`" -Background"
+        $value = "`"$script:HostExe`" -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$scriptPath`" -Background"
         Set-ItemProperty -Path $script:RegPath -Name $script:RegName -Value $value
     } else {
         Remove-ItemProperty -Path $script:RegPath -Name $script:RegName -ErrorAction SilentlyContinue
@@ -369,7 +383,7 @@ $delayItem.add_Click({
     $inputForm.TopMost = $true
 
     $lbl = New-Object System.Windows.Forms.Label
-    $lbl.Text = "Delay between keystrokes (0–1000 ms):"
+    $lbl.Text = "Delay between keystrokes (0-1000 ms):"
     $lbl.Location = New-Object System.Drawing.Point(15, 15)
     $lbl.AutoSize = $true
     $lbl.Font = New-Object System.Drawing.Font("Segoe UI", 9)
