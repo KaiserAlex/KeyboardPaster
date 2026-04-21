@@ -31,11 +31,13 @@ Once running:
 
 ### System Tray Menu (right-click)
 
-| Entry              | Description                                                      |
-|--------------------|------------------------------------------------------------------|
-| **Autostart**      | Toggle Windows autostart on/off (enabled by default on first run) |
-| **Change Hotkey…** | Opens a dialog to capture a new keyboard shortcut                 |
-| **Exit**           | Stops KeyboardPaster                                              |
+| Entry                | Description                                                       |
+|----------------------|-------------------------------------------------------------------|
+| **Autostart**        | Toggle Windows autostart on/off (enabled by default on first run) |
+| **Enter after Paste**| Toggle sending an Enter keystroke after pasting is complete        |
+| **Delay: Xms**       | Opens a dialog to change the keystroke delay at runtime (0–1000)  |
+| **Change Hotkey…**   | Opens a dialog to capture a new keyboard shortcut                 |
+| **Exit**             | Stops KeyboardPaster                                              |
 
 ### Stopping
 
